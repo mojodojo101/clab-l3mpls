@@ -1,0 +1,83 @@
+	{
+		"p_routers": [
+			{
+				"p01": {
+					"interfaces": [
+						{
+							"name": "system0",
+							"ipv4": "10.31.10.1",
+							"cidr": "/32"
+						},
+						{
+							"name": "ethernet-1/1",
+							"ipv4": "172.30.1.0",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/2",
+							"ipv4": "172.30.1.2",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/3",
+							"ipv4": "172.31.1.0",
+							"cidr": "/31"
+						}
+					],
+					"area": "0.0.0.1",
+					"router_id": "10.31.10.1"
+				}
+			},
+			{
+				"p02": {
+					"interfaces": [
+						{
+							"name": "system0",
+							"ipv4": "10.31.10.2",
+							"cidr": "/32"
+						},
+						{
+							"name": "ethernet-1/1",
+							"ipv4": "172.30.1.1",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/2",
+							"ipv4": "172.30.2.0",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/3",
+							"ipv4": "172.31.2.0",
+							"cidr": "/31"
+						}
+					],
+					"area": "0.0.0.1",
+					"router_id": "10.31.10.2"
+				}
+			},
+			{
+				"p03": {
+					"interfaces": [
+						{
+							"name": "system0",
+							"ipv4": "10.31.10.3",
+							"cidr": "/32"
+						},
+						{
+							"name": "ethernet-1/1",
+							"ipv4": "172.30.1.3",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/2",
+							"ipv4": "172.30.2.1",
+							"cidr": "/31"
+						}
+					],
+					"area": "0.0.0.1",
+					"router_id": "10.31.10.3"
+				}
+			}
+		]
+	}

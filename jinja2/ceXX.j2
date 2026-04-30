@@ -1,0 +1,121 @@
+
+{% for hostname, details in router.items() %}
+system {
+    name {
+        host-name {{hostname}}
+    }
+    aaa {
+        authentication {
+            admin-user {
+                password admin
+            }
+        }
+    }
+}
+
+    {% for iface in details.interfaces %}
+
+
+interface {{iface.name}} {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address {{iface.ipv4}}{{iface.cidr}} {
+            }
+        }
+    }
+}
+
+
+    {% endfor %}
+
+routing-policy {
+    prefix-set local_networks {
+{# regex_replace must be defined in the python file, there is no native regex_replace in jinja
+#} 
+        {% for iface in details.interfaces %}
+            {% if iface.cidr  == "/24" %}
+     prefix {{ iface.ipv4 | regex_replace("\.1$",".0") }}{{ iface.cidr }} mask-length-range 24..32 {
+        }
+            {% endif %}
+        {% endfor %}
+    }
+    policy local_networks {
+         default-action {
+            policy-result reject
+        }
+
+        statement 10 {
+            match {
+                prefix prefix-set local_networks
+            }
+            action {
+                policy-result accept
+            }
+        }
+    }
+    prefix-set RFC1918_networks {
+        prefix 10.0.0.0/8 mask-length-range 8..32 {
+        }
+        prefix 172.16.0.0/12 mask-length-range 12..32 {
+        }
+        prefix 192.168.0.0/16 mask-length-range 16..32 {
+        }      
+    }
+    policy remote_networks {
+         default-action {
+            policy-result reject
+        }
+
+        statement 10 {
+            match {
+                prefix prefix-set local_networks
+            }
+            action {
+                policy-result reject
+            }
+        }
+        statement 20 {
+            match {
+                prefix prefix-set RFC1918_networks
+            }
+            action {
+                policy-result accept
+            }
+        }
+    }
+}
+
+network-instance default {
+    {% for iface in details.interfaces %}
+    interface {{iface.name}}.0 {
+    }
+    {% endfor %}
+    protocols {
+        bgp {
+            admin-state enable
+            autonomous-system {{details.asn}}
+            router-id {{details.router_id}}
+            afi-safi ipv4-unicast {
+                admin-state enable
+            }
+            group rs {
+                export-policy [local_networks]
+                import-policy [remote_networks]
+                afi-safi ipv4-unicast {
+                    admin-state enable
+                }
+            }
+        {% for peer in details.bgp_peer %}
+            neighbor {{peer.peer_ip}} {
+                peer-as {{peer.asn}}
+                peer-group rs
+            }
+        {% endfor %}
+        }
+    }
+}
+
+{% endfor %}

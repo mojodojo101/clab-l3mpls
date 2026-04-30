@@ -1,0 +1,136 @@
+	{
+		"pe_routers": [
+			{
+				"pe01": {
+					"interfaces": [
+						{
+							"name": "ethernet-1/1",
+							"ipv4": "172.31.1.1",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/2",
+							"ipv4": "31.172.96.0",
+							"cidr": "/31",
+							"vrf": "VRF-A"
+						},
+						{
+							"name": "ethernet-1/3",
+							"ipv4": "31.172.96.6",
+							"cidr": "/31",
+							"vrf": "VRF-B"
+						},
+						{
+							"name": "system0",
+							"ipv4": "10.31.20.1",
+							"cidr": "/32"
+						}
+					],
+					"asn": "100",
+					"router_id": "10.31.20.1",
+					"bgp_peer": [
+						{
+							"peer_ip": "10.31.20.2",
+							"asn": "100",
+							"multihop": true,
+							"maximum_hop": 3
+						}
+					],
+					"vrfs": [
+						{
+							"name": "VRF-A",
+							"rd": "100:1",
+							"rt_export": "target:100:1",
+							"rt_import": "target:100:1",
+							"bgp_peers": [
+								{
+									"peer_ip": "31.172.96.1",
+									"asn": "65001",
+									"as_override": true
+								}
+							]
+						},
+						{
+							"name": "VRF-B",
+							"rd": "100:2",
+							"rt_export": "target:100:2",
+							"rt_import": "target:100:2",
+							"bgp_peers": [
+								{
+									"peer_ip": "31.172.96.7",
+									"asn": "65002",
+									"as_override": true
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"pe02": {
+					"interfaces": [
+						{
+							"name": "ethernet-1/1",
+							"ipv4": "172.31.2.1",
+							"cidr": "/31"
+						},
+						{
+							"name": "ethernet-1/2",
+							"ipv4": "31.172.96.2",
+							"cidr": "/31",
+							"vrf": "VRF-A"
+						},
+						{
+							"name": "ethernet-1/3",
+							"ipv4": "31.172.96.4",
+							"cidr": "/31",
+							"vrf": "VRF-B"
+						},
+						{
+							"name": "system0",
+							"ipv4": "10.31.20.2",
+							"cidr": "/32"
+						}
+					],
+					"asn": "100",
+					"router_id": "10.31.20.2",
+					"bgp_peer": [
+						{
+							"peer_ip": "10.31.20.1",
+							"asn": "100",
+							"multihop": true,
+							"maximum_hop": 3
+						}
+					],
+					"vrfs": [
+						{
+							"name": "VRF-A",
+							"rd": "100:1",
+							"rt_export": "target:100:1",
+							"rt_import": "target:100:1",
+							"bgp_peers": [
+								{
+									"peer_ip": "31.172.96.3",
+									"asn": "65001",
+									"as_override": true
+								}
+							]
+						},
+						{
+							"name": "VRF-B",
+							"rd": "100:2",
+							"rt_export": "target:100:2",
+							"rt_import": "target:100:2",
+							"bgp_peers": [
+								{
+									"peer_ip": "31.172.96.5",
+									"asn": "65002",
+									"as_override": true
+								}
+							]
+						}
+					]
+				}
+			}
+		]
+	}

@@ -1,0 +1,193 @@
+
+{% for hostname, details in router.items() %}
+system {
+    name {
+        host-name {{hostname}}
+    }
+    aaa {
+        authentication {
+            admin-user {
+                password admin
+            }
+        }
+    }
+}
+
+    {% for iface in details.interfaces %}
+
+
+interface {{iface.name}} {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address {{iface.ipv4}}{{iface.cidr}} {
+            }
+        }
+    }
+}
+
+
+    {% endfor %}
+
+{# Collect interface names assigned to VRFs so we can exclude them from default #}
+{% set vrf_iface_names = [] %}
+{% for iface in details.interfaces if iface.vrf is defined %}
+{% if vrf_iface_names.append(iface.name) %}{% endif %}
+{% endfor %}
+
+routing-policy {
+    policy accept-all {
+        default-action {
+            policy-result accept
+        }
+    }
+}
+
+network-instance default {
+    {% for iface in details.interfaces if iface.name not in vrf_iface_names %}
+    interface {{iface.name}}.0 {
+    }
+    {% endfor %}
+    protocols {
+        ospf {
+            instance default {
+                admin-state enable
+                version ospf-v2
+                router-id {{details.router_id}}
+                area 0.0.0.1 {
+                    {% for iface in details.interfaces if iface.name not in vrf_iface_names %}
+                    interface {{iface.name}}.0 {
+                        interface-type point-to-point
+                    }
+                    {% endfor %}
+                }
+            }
+        }
+        bgp {
+            admin-state enable
+            autonomous-system {{details.asn}}
+            router-id {{details.router_id}}
+            afi-safi l3vpn-ipv4-unicast {
+                admin-state enable
+            }
+            group pe {
+                admin-state enable 
+                afi-safi l3vpn-ipv4-unicast {
+                    admin-state enable
+                }
+            }
+        {% for peer in details.bgp_peer %}
+            neighbor {{peer.peer_ip}} {
+                peer-as {{peer.asn}}
+                peer-group pe
+                {% if peer.multihop %}
+                multihop maximum-hops {{ peer.maximum_hop }}
+                transport local-address {{details.router_id}}
+                next-hop-self true
+                {% endif %}
+            }
+        {% endfor %}
+        }
+        ldp {
+            admin-state enable
+            dynamic-label-block D1
+            discovery {
+                interfaces {
+                {% for iface in details.interfaces if iface.name != "system0" and iface.name not in vrf_iface_names %}
+                interface {{iface.name}}.0 {
+                    ipv4 {
+                        admin-state enable
+                        }
+                    }
+                {% endfor %}
+                }
+            }
+        }
+    }
+}
+
+{% if details.vrfs is defined %}
+{% for vrf in details.vrfs %}
+network-instance {{vrf.name}} {
+    type ip-vrf
+    admin-state enable
+    {% for iface in details.interfaces if iface.vrf is defined and iface.vrf == vrf.name %}
+    interface {{iface.name}}.0 {
+    }
+    {% endfor %}
+    protocols {
+        bgp-vpn {
+            bgp-instance 1 {
+                route-distinguisher {
+                    rd {{vrf.rd}}
+                }
+                route-target {
+                    export-rt {{vrf.rt_export}}
+                    import-rt {{vrf.rt_import}}
+                }
+            }
+        }
+        bgp-ipvpn {
+            bgp-instance 1 {
+                admin-state enable
+                mpls {
+                    next-hop-resolution {
+                        allowed-tunnel-types [ ldp ]
+                    }
+                }
+            }
+        }
+        bgp {
+            admin-state enable
+            autonomous-system {{details.asn}}
+            router-id {{details.router_id}}
+            afi-safi ipv4-unicast {
+                admin-state enable
+            }
+            group ce {
+                export-policy [accept-all]
+                import-policy [accept-all]
+                afi-safi ipv4-unicast {
+                    admin-state enable
+                }
+            }
+            {% for peer in vrf.bgp_peers %}
+            neighbor {{peer.peer_ip}} {
+                peer-as {{peer.asn}}
+                peer-group ce
+                {% if peer.as_override %}
+                as-path-options {
+                    replace-peer-as true
+                }
+                {% endif %}
+            }
+            {% endfor %}
+        }
+    }
+}
+{% endfor %}
+{% endif %}
+
+system {
+    mpls {
+        label-ranges {
+            dynamic D1 {
+                start-label 100
+                end-label 199
+            }
+            dynamic S1 {
+                start-label 200
+                end-label 299
+            }
+        }
+        services {
+            network-instance {
+                dynamic-label-block S1
+            }
+        }
+    }
+}
+
+{% endfor %}

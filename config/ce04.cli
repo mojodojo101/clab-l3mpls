@@ -1,0 +1,164 @@
+
+
+system {
+    name {
+        host-name ce04
+    }
+    aaa {
+        authentication {
+            admin-user {
+                password admin
+            }
+        }
+    }
+}
+
+    
+
+
+interface ethernet-1/1 {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address 31.172.96.5/31 {
+            }
+        }
+    }
+}
+
+
+    
+
+
+interface ethernet-1/2 {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address 192.168.7.1/24 {
+            }
+        }
+    }
+}
+
+
+    
+
+
+interface ethernet-1/3 {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address 192.168.8.1/24 {
+            }
+        }
+    }
+}
+
+
+    
+
+routing-policy {
+    prefix-set local_networks {
+ 
+        
+            
+        
+            
+     prefix 192.168.7.0/24 mask-length-range 24..32 {
+        }
+            
+        
+            
+     prefix 192.168.8.0/24 mask-length-range 24..32 {
+        }
+            
+        
+    }
+    policy local_networks {
+         default-action {
+            policy-result reject
+        }
+
+        statement 10 {
+            match {
+                prefix prefix-set local_networks
+            }
+            action {
+                policy-result accept
+            }
+        }
+    }
+    prefix-set RFC1918_networks {
+        prefix 10.0.0.0/8 mask-length-range 8..32 {
+        }
+        prefix 172.16.0.0/12 mask-length-range 12..32 {
+        }
+        prefix 192.168.0.0/16 mask-length-range 16..32 {
+        }      
+    }
+    policy remote_networks {
+         default-action {
+            policy-result reject
+        }
+
+        statement 10 {
+            match {
+                prefix prefix-set local_networks
+            }
+            action {
+                policy-result reject
+            }
+        }
+        statement 20 {
+            match {
+                prefix prefix-set RFC1918_networks
+            }
+            action {
+                policy-result accept
+            }
+        }
+    }
+}
+
+network-instance default {
+    
+    interface ethernet-1/1.0 {
+    }
+    
+    interface ethernet-1/2.0 {
+    }
+    
+    interface ethernet-1/3.0 {
+    }
+    
+    protocols {
+        bgp {
+            admin-state enable
+            autonomous-system 65002
+            router-id 31.172.96.5
+            afi-safi ipv4-unicast {
+                admin-state enable
+            }
+            group rs {
+                export-policy [local_networks]
+                import-policy [remote_networks]
+                afi-safi ipv4-unicast {
+                    admin-state enable
+                }
+            }
+        
+            neighbor 31.172.96.4 {
+                peer-as 100
+                peer-group rs
+            }
+        
+        }
+    }
+}
+

@@ -1,0 +1,120 @@
+name: l3mpls
+
+topology:
+  kinds:
+    nokia_srlinux:
+        image: ghcr.io/nokia/srlinux:25.10
+        license: ~/containerlab/srl_25_10_license.txt
+#        binds: 
+#            - ~/containerlab/srl_25_10_license.txt:/opt/srlinux/etc/license.key:ro
+
+# timedatectl set-time '2026-02-15 12:12:12'
+  nodes:
+    ce01:
+        kind: nokia_srlinux
+        startup-config: ./config/ce01.cli
+    ce02:
+        kind: nokia_srlinux
+        startup-config: ./config/ce02.cli
+    ce03:
+        kind: nokia_srlinux
+        startup-config: ./config/ce03.cli
+    ce04:
+        kind: nokia_srlinux
+        startup-config: ./config/ce04.cli
+    pe01:
+        kind: nokia_srlinux
+        startup-config: ./config/pe01.cli
+        type: ixr-6e
+    pe02:
+        kind: nokia_srlinux
+        startup-config: ./config/pe02.cli
+        type: ixr-6e
+    p01:
+        kind: nokia_srlinux
+        startup-config: ./config/p01.cli
+        type: ixr-6e
+    p02:
+        kind: nokia_srlinux
+        startup-config: ./config/p02.cli
+        type: ixr-6e
+    p03:
+        kind: nokia_srlinux
+        startup-config: ./config/p03.cli
+        type: ixr-6e
+    linux01:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.1.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.1.1
+          - ip link set ethernet-1-1 up 
+    linux02:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.2.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.2.1
+          - ip link set ethernet-1-1 up 
+    linux03:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.3.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.3.1
+          - ip link set ethernet-1-1 up 
+    linux04:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.4.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.4.1
+          - ip link set ethernet-1-1 up
+    linux05:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.5.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.5.1
+          - ip link set ethernet-1-1 up
+    linux06:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.6.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.6.1
+          - ip link set ethernet-1-1 up
+    linux07:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.7.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.7.1
+          - ip link set ethernet-1-1 up
+    linux08:
+        kind: linux
+        image: ghcr.io/srl-labs/network-multitool
+        exec:
+          - ip addr add 192.168.8.2/24 dev ethernet-1-1
+          - ip route replace default via 192.168.8.1
+          - ip link set ethernet-1-1 up
+
+    
+  links:
+    - endpoints: ["ce01:ethernet-1/1","pe01:ethernet-1/2"]
+    - endpoints: ["ce02:ethernet-1/1","pe02:ethernet-1/2"]
+    - endpoints: ["ce03:ethernet-1/1","pe01:ethernet-1/3"]
+    - endpoints: ["ce04:ethernet-1/1","pe02:ethernet-1/3"]
+    - endpoints: ["pe01:ethernet-1/1","p01:ethernet-1/3"]
+    - endpoints: ["pe02:ethernet-1/1","p02:ethernet-1/3"]
+    - endpoints: ["p01:ethernet-1/1","p02:ethernet-1/1"]
+    - endpoints: ["p01:ethernet-1/2","p03:ethernet-1/1"]
+    - endpoints: ["p02:ethernet-1/2","p03:ethernet-1/2"]
+    - endpoints: ["ce01:ethernet-1/2","linux01:ethernet-1/1"]
+    - endpoints: ["ce01:ethernet-1/3","linux02:ethernet-1/1"]
+    - endpoints: ["ce02:ethernet-1/2","linux03:ethernet-1/1"]
+    - endpoints: ["ce02:ethernet-1/3","linux04:ethernet-1/1"]
+    - endpoints: ["ce03:ethernet-1/2","linux05:ethernet-1/1"]
+    - endpoints: ["ce03:ethernet-1/3","linux06:ethernet-1/1"]
+    - endpoints: ["ce04:ethernet-1/2","linux07:ethernet-1/1"]
+    - endpoints: ["ce04:ethernet-1/3","linux08:ethernet-1/1"]

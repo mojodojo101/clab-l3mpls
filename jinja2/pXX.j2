@@ -1,0 +1,83 @@
+
+{% for hostname, details in router.items() %}
+system {
+    name {
+        host-name {{hostname}}
+    }
+    aaa {
+        authentication {
+            admin-user {
+                password admin
+            }
+        }
+    }
+}
+
+    {% for iface in details.interfaces %}
+
+
+interface {{iface.name}} {
+    admin-state enable
+    subinterface 0 {
+        admin-state enable
+        ipv4 {
+            admin-state enable
+            address {{iface.ipv4}}{{iface.cidr}} {
+            }
+        }
+    }
+}
+
+
+    {% endfor %}
+
+network-instance default {
+    {% for iface in details.interfaces %}
+    interface {{iface.name}}.0 {
+    }
+    {% endfor %}
+    protocols {
+        ospf {
+            instance default {
+                admin-state enable
+                version ospf-v2
+                router-id {{details.router_id}}
+                area 0.0.0.1 {
+                    {% for iface in details.interfaces %}
+                    interface {{iface.name}}.0 {
+                        interface-type point-to-point
+                    }
+                    {% endfor %}
+                }
+            }
+        }
+        ldp {
+            admin-state enable
+            dynamic-label-block D1
+            discovery {
+                interfaces {
+                {% for iface in details.interfaces if iface.name != "system0" %}
+                interface {{iface.name}}.0 {
+                    ipv4 {
+                        admin-state enable
+                        }
+                    }
+                {% endfor %}
+                }
+            }
+        }
+    }
+}
+
+system {
+    mpls {
+        label-ranges {
+            dynamic D1 {
+                start-label 100
+                end-label 199
+            }
+        }
+    }
+}
+
+{% endfor %}
