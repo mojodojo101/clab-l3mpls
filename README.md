@@ -1,4 +1,4 @@
 # clab-l3mpls
 
 
-![Alt text](./controllers_brief.svg)
+![SVG of network plan](https://raw.githubusercontent.com/mojodojo101/clab-l3mpls/refs/heads/main/network_plan.svg)
